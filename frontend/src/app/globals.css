@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+/* @theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+} */
+
+/* Add global styles here */
+
+@font-face {
+  font-family: 'Digitag';
+  src: url('/fonts/digitag/dotty.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Example usage: apply Digitag font to a class */
+.digitag-text {
+  font-family: 'Digitag', sans-serif;
+}
+
+/* @media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+} */
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Inter, Arial, Helvetica, sans-serif;
+}
