@@ -5,6 +5,7 @@ import json
 import random
 from datetime import datetime
 import pytz
+import os
 
 app = FastAPI()
 
@@ -15,6 +16,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+PORT = int(os.environ["PORT"])
 
 pst = pytz.timezone("America/Los_Angeles")
 

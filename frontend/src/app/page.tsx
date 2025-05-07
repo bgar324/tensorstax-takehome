@@ -11,7 +11,7 @@ interface Message {
 
 export default function HomePage() {
   const [isLive, setIsLive] = useState(false);
-  const raw = useWebSocket(process.env.NEXT_PUBLIC_WS_URL as string, isLive);
+  const raw = useWebSocket(process.env.NEXT_PUBLIC_WS_URL!, isLive);
   const [messages, setMessages] = useState<Message[]>([]);
   const [cooldown, setCooldown] = useState(false);
 
