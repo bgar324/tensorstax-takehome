@@ -1,8 +1,9 @@
 "use client";
 import { useWebSocket } from "../lib/useWebSocket";
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "react"; // state and lifecycle hooks
 import Image from "next/image";
 
+// defines the expected shape of messages received from the backend
 interface Message {
   timestamp: string;
   type: "status" | "notification" | "activity";
@@ -10,18 +11,21 @@ interface Message {
 }
 
 export default function HomePage() {
-  const [isLive, setIsLive] = useState(false);
-  const raw = useWebSocket(process.env.NEXT_PUBLIC_WS_URL!, isLive);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [cooldown, setCooldown] = useState(false);
+  const [isLive, setIsLive] = useState(false); // toggle for whether the live feed is active (or not)
+  const raw = useWebSocket(process.env.NEXT_PUBLIC_WS_URL!, isLive); // hook that returns the latest raw JSON string from the websocket
+  const [messages, setMessages] = useState<Message[]>([]); // stores parsed messages (up to 20)
+  const [cooldown, setCooldown] = useState(false); // prevents button spam by locking interactions for 1 second
 
+  // parses raw message and update message list for when new data arrives
   useEffect(() => {
     if (raw) {
       const parsed: Message = JSON.parse(raw);
-      setMessages((prev) => [parsed, ...prev.slice(0, 19)]);
+      setMessages((prev) => [parsed, ...prev.slice(0, 19)]); // prepends the newest message to the front (index 0) and keeps the array capped at 20
+      // enqueue at the front, implicitly drop from the back. therefore: messages[0] = newest message.
     }
   }, [raw]);
 
+  // toggles live feed on/off with cooldown guard
   const toggleFeed = () => {
     if (cooldown) return;
     setCooldown(true);
@@ -29,6 +33,7 @@ export default function HomePage() {
     setTimeout(() => setCooldown(false), 1000);
   };
 
+  // gets the timestamp of the most recent message
   const latestTimestamp = messages[0]?.timestamp;
 
   return (
@@ -46,6 +51,7 @@ export default function HomePage() {
           </h1>
         </div>
       </header>
+      {/* feed control */}
       <div className="sticky top-0 z-30 flex justify-center w-full py-4 bg-transparent">
         <div className="rounded-full shadow-lg px-8 py-3 flex flex-row items-center gap-6 bg-white border border-gray-200">
           <button
@@ -71,7 +77,7 @@ export default function HomePage() {
           </button>
         </div>
       </div>
-
+      {/* Section 1: Latest Messages Stacked */}
       <main className="flex flex-row mx-auto">
         <div className="p-6 flex justify-center items-start">
           <div className="max-w-2xl w-full border-2 border-gray-400 rounded-lg overflow-hidden p-4 flex flex-row gap-4">
@@ -79,7 +85,6 @@ export default function HomePage() {
               <div className="justify-between text-center items-center flex flex-row gap-2 mb-4 border-b-1 border-gray-400">
                 <h1 className="text-xl font-semibold">Live Feed</h1>
                 <p className="text-sm">
-                  {" "}
                   {latestTimestamp
                     ? `last updated: ${new Date(latestTimestamp).toLocaleString(
                         "en-US",
@@ -91,13 +96,16 @@ export default function HomePage() {
               <h2 className="text-lg font-semibold mb-2">
                 Latest Message Stacked
               </h2>
+              {/* unordered list container with vertical spacing between items */}
               <ul className="space-y-2 mb-8">
+                {/* loop over the full message array, newest first due to prepending */}
+                {/* each message renders as a data card in real-time order */}
                 {messages.map((msg, idx) => {
                   let icon = "";
                   let border = "";
                   let bg = "";
                   let text = "";
-
+                  // assigns styling and emoji based on message type
                   if (msg.type === "status") {
                     icon = "🧭";
                     border = "border-green-300";
@@ -133,7 +141,7 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-
+        {/* Section 2: Latest Message Only */}
         <div className="p-6 flex justify-center items-start">
           <div className="max-w-2xl w-full border-2 border-gray-400 rounded-lg overflow-hidden p-4 flex flex-row gap-4">
             <div className="w-full p-4 text-left border-2 border-gray-300 rounded-xl">
@@ -153,7 +161,10 @@ export default function HomePage() {
                   Latest Message Only
                 </h2>
                 <ul>
+                  {/* getting the first message  */}
                   {messages[0] &&
+                    // use an immediately invoked function expression (IIFE) to run logic (choose styles/icons) before returning JSX
+                    //jsx doesnt support if / let statements inside the return block. acting like an inline function scope
                     (() => {
                       const msg = messages[0];
                       let icon = "";
@@ -194,6 +205,7 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+        {/* Section 3: Latest Message Per Type */}
         <div className="p-6 flex justify-center items-start">
           <div className="max-w-2xl w-full border-2 border-gray-400 rounded-lg overflow-hidden p-4 flex flex-row gap-4">
             <div className="w-full p-4 text-left border-2 border-gray-300 rounded-xl">
@@ -211,10 +223,13 @@ export default function HomePage() {
               <div>
                 <h2 className="text-lg font-semibold mb-2">Latest by Type</h2>
                 <ul className="space-y-2">
+                  {/* looping through the three expected types */}
                   {["status", "notification", "activity"].map((type) => {
+                    // search for the first message that matches the current type. because messages are prepended, this is a fast lookup.
                     const latestOfType = messages.find(
                       (msg) => msg.type === type
                     );
+                    // if nothing has been received yet, display a disabled card saying that.
                     if (!latestOfType)
                       return (
                         <li
